@@ -130,7 +130,6 @@ dmypy.json
 
 # Serverless directories
 .serverless
-rds_config.py
 
 node_modules
 .idea
