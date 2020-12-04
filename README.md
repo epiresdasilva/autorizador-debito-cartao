@@ -25,6 +25,12 @@ Vamos exercitar o débito em conta e o processamento dele após a confirmação 
 
 Obs.: Esse é um desenho inicial e pode sofrer alterações :)
 
+Pontos que ainda serão avaliados:
+* Possivelmente o uso de Step Functions não seja necessário ou possa trazer custos desnecessários
+* Utilização de Lambda layer para a biblioteca `psycopg2` deve trazer melhoria de performance
+* Utilização de RDS Proxy deve trazer melhoria de performance (principalmente pela reutilização de conexões)
+* Possibilidade de criação de um cliente ISO8583 para ficar mais fiel ao projeto de autorização de débito
+
 ## Status
 
 **EM ANDAMENTO**
