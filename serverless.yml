@@ -1,0 +1,108 @@
+service: autorizador-debito-cartao
+
+provider:
+  name: aws
+  runtime: python3.8
+  region: us-east-1
+  stage: dev
+  stackName: ${self:service}-${self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - rds-data:BatchExecuteStatement
+        - rds-data:BeginTransaction
+        - rds-data:CommitTransaction
+        - rds-data:ExecuteStatement
+        - rds-data:RollbackTransaction
+      Resource: arn:aws:rds:${self:provider.region}:*:cluster:*
+layers:
+  psycopg2:
+    path: psycopg2
+functions:
+  debitador:
+    handler: debitador.main
+    memorySize: 128
+    events:
+      - http:
+          path: debito
+          method: post
+    environment:
+      RDS_ENDPOINT: {"Fn::GetAtt": ["Database","Endpoint.Address"]}
+  criarConta:
+    handler: criar_conta.main
+    memorySize: 128
+    events:
+      - http:
+          path: conta
+          method: post
+    environment:
+      RDS_ENDPOINT: {"Fn::GetAtt": ["Database","Endpoint.Address"]}
+
+custom:
+  vpcConfig:
+    cidrBlock: '10.0.0.0/16'
+    createNatGateway: 2
+    createNetworkAcl: false
+    createDbSubnet: true
+    createFlowLogs: false
+    createBastionHost: false
+    bastionHostKeyName: MyKey
+    createNatInstance: false
+    createParameters: false
+    zones:
+      - us-east-1a
+      - us-east-1b
+      - us-east-1c
+    services:
+      - kms
+      - secretsmanager
+    subnetGroups:
+      - rds
+    exportOutputs: false
+
+resources:
+  Resources:
+    Database:
+      Type: AWS::RDS::DBCluster
+      Properties:
+        BackupRetentionPeriod: 1
+        DBSubnetGroupName: !Ref RDSSubnetGroup #recurso criado automaticamente pelo plugin serverless-vpc-plugin
+        Engine: aurora-postgresql
+        EngineMode: serverless
+        MasterUsername: autorizador
+        DatabaseName: autorizador
+        MasterUserPassword: autorizador
+        EnableHttpEndpoint: true
+        ScalingConfiguration:
+          AutoPause: false
+          MinCapacity: 2
+          MaxCapacity: 2
+        StorageEncrypted: true
+        VpcSecurityGroupIds:
+          - !Ref AppSecurityGroup #recurso criado automaticamente pelo plugin serverless-vpc-plugin
+    SecurityGroupIngress:
+      Type: 'AWS::EC2::SecurityGroupIngress'
+      Properties:
+        GroupId: !Ref AppSecurityGroup
+        IpProtocol: tcp
+        FromPort: 5432
+        ToPort: 5432
+        SourceSecurityGroupId: !GetAtt AppSecurityGroup.GroupId
+    SecurityGroupEgress:
+      Type: 'AWS::EC2::SecurityGroupEgress'
+      Properties:
+        GroupId: !Ref AppSecurityGroup
+        IpProtocol: tcp
+        FromPort: 5432
+        ToPort: 5432
+        SourceSecurityGroupId: !GetAtt AppSecurityGroup.GroupId
+    SecurityGroupEgress2:
+      Type: 'AWS::EC2::SecurityGroupEgress'
+      Properties:
+        GroupId: !Ref AppSecurityGroup
+        IpProtocol: -1
+        SourceSecurityGroupId: !GetAtt AppSecurityGroup.GroupId
+plugins:
+  - serverless-apigateway-service-proxy
+  - serverless-cloudformation-sub-variables
+  - serverless-vpc-plugin

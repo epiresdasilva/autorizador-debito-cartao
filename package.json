@@ -1,0 +1,11 @@
+{
+  "name": "autorizador-debito-cartao",
+  "description": "",
+  "version": "0.1.0",
+  "dependencies": {},
+  "devDependencies": {
+    "serverless-apigateway-service-proxy": "^1.13.0",
+    "serverless-cloudformation-sub-variables": "^0.2.1",
+    "serverless-vpc-plugin": "^1.0.1"
+  }
+}
