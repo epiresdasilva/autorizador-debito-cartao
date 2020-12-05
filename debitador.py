@@ -32,20 +32,30 @@ def main(event, context):
                         returning saldo;
                         """)
         result = cursor.fetchone()
+        saldo = float(result[0])
 
-        connection.commit()
+        if saldo < 0:
+            connection.rollback()
+        else:
+            connection.commit()
     except psycopg2.Error as e:
         connection.rollback()
         logger.error("Error while inserting", e)
 
+    status_code = 200
     body = {
-        "saldo": float(result[0])
+        "saldo": saldo
     }
 
+    if saldo < 0:
+        status_code = 409
+        body = {
+            "mensagem": "Saldo insuficiente"
+        }
+
     response = {
-        "statusCode": 200,
+        "statusCode": status_code,
         "body": json.dumps(body)
     }
 
     return response
-

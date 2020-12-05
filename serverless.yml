@@ -15,9 +15,6 @@ provider:
         - rds-data:ExecuteStatement
         - rds-data:RollbackTransaction
       Resource: arn:aws:rds:${self:provider.region}:*:cluster:*
-layers:
-  psycopg2:
-    path: psycopg2
 functions:
   debitador:
     handler: debitador.main
