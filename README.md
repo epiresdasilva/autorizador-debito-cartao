@@ -43,8 +43,18 @@ Para o projeto, está sendo utilizado um banco de dados Aurora Serverless compat
 O projeto está totalmente funcional e com todas as configurações automatizadas.
 Basta realizar o deploy utilizando Serverless Framework e *voilà*.
 
-```
+```shell script
 sls deploy
+```
+
+Para criar uma conta basta executar a seguinte requisição (usar a URL base gerada no deploy):
+```shell script
+curl -X POST  https://XYZ.execute-api.us-east-1.amazonaws.com/dev/conta -d '{"agencia": 1000, "numeroConta": 1234, "saldo": 1000, "numeroCartao": 1111222233334444}' -H 'Content-Type: application/json'
+```
+
+Para realizar um débito, execute o comando abaixo:
+```shell script
+curl -X POST https://XYZ.execute-api.us-east-1.amazonaws.com/dev/debito -d '{"numeroCartao": 1111222233334444, "valor": 50}' -H 'Content-Type: application/json'
 ```
 
 ### Output
