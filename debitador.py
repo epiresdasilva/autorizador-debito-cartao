@@ -28,7 +28,7 @@ def main(event, context):
     try:
         cursor.execute(f"""
                         update conta_corrente set saldo = saldo - {body["valor"]}
-                        where numero_cartao = {body["numero_cartao"]}
+                        where numero_cartao = {body["numeroCartao"]}
                         returning saldo;
                         """)
         result = cursor.fetchone()
