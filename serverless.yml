@@ -15,6 +15,15 @@ provider:
         - rds-data:ExecuteStatement
         - rds-data:RollbackTransaction
       Resource: arn:aws:rds:${self:provider.region}:*:cluster:*
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - events:PutEvents
+      Resource: "*"
+
 functions:
   debitador:
     handler: debitador.main
@@ -34,6 +43,22 @@ functions:
           method: post
     environment:
       RDS_ENDPOINT: {"Fn::GetAtt": ["Database","Endpoint.Address"]}
+  registrarLancamento:
+    handler: registrar_lancamento.main
+    memorySize: 128
+    events:
+      - eventBridge:
+          pattern:
+            source:
+              - debitador
+  contabilizar:
+    handler: contabilizar.main
+    memorySize: 128
+    events:
+      - eventBridge:
+          pattern:
+            source:
+              - debitador
 
 custom:
   vpcConfig:
@@ -99,6 +124,7 @@ resources:
         GroupId: !Ref AppSecurityGroup
         IpProtocol: -1
         SourceSecurityGroupId: !GetAtt AppSecurityGroup.GroupId
+
 plugins:
   - serverless-apigateway-service-proxy
   - serverless-cloudformation-sub-variables

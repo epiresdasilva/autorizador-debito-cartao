@@ -2,6 +2,7 @@ import json
 import logging
 import psycopg2
 import rds_config
+import boto3
 
 
 def main(event, context):
@@ -57,5 +58,18 @@ def main(event, context):
         "statusCode": status_code,
         "body": json.dumps(body)
     }
+
+    client = boto3.client('events')
+
+    bridge_response = client.put_events(
+        Entries=[
+            {
+                'Source': 'debitador',
+                'DetailType': 'debitador',
+                'Detail': json.dumps(body)
+            },
+        ]
+    )
+    print(str(bridge_response))
 
     return response
