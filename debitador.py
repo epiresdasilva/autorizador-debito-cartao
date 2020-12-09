@@ -30,10 +30,12 @@ def main(event, context):
         cursor.execute(f"""
                         update conta_corrente set saldo = saldo - {body["valor"]}
                         where numero_cartao = {body["numeroCartao"]}
-                        returning saldo;
+                        returning saldo, agencia, numero_conta;
                         """)
         result = cursor.fetchone()
         saldo = float(result[0])
+        agencia = result[1]
+        numero_conta = result[2]
 
         if saldo < 0:
             connection.rollback()
@@ -43,21 +45,21 @@ def main(event, context):
         connection.rollback()
         logger.error("Error while inserting", e)
 
-    status_code = 200
-    body = {
-        "saldo": saldo
+    conta = {
+        "agencia": agencia,
+        "numeroConta": numero_conta,
+        "numeroCartao": body["numeroCartao"],
+        "valor": body["valor"]
     }
 
     if saldo < 0:
-        status_code = 409
-        body = {
-            "mensagem": "Saldo insuficiente"
-        }
+        return error_response(conta)
 
-    response = {
-        "statusCode": status_code,
-        "body": json.dumps(body)
-    }
+    return success_response(conta)
+
+
+def success_response(body):
+    status_code = 200
 
     client = boto3.client('events')
 
@@ -72,4 +74,18 @@ def main(event, context):
     )
     print(str(bridge_response))
 
-    return response
+    return {
+        "statusCode": status_code,
+        "body": json.dumps(body)
+    }
+
+
+def error_response(body):
+    status_code = 409
+    body["mensagem"] = "Saldo insuficiente"
+
+    return {
+        "statusCode": status_code,
+        "body": json.dumps(body)
+    }
+

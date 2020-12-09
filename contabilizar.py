@@ -1,18 +1,36 @@
-import json
+import boto3
 import logging
+import os
+import uuid
 
 
 def main(event, context):
+    body = event["detail"]
+
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    body = {
-        "mensagem": "Contabilização incluida com sucesso"
-    }
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+    table_name = os.environ['CONTABILIZACAO_TABLE']
 
-    response = {
-        "statusCode": 200,
-        "body": json.dumps(body)
-    }
+    table = dynamodb.Table(table_name)
 
-    return response
+    return table.put_item(
+        Item={
+            'id': str(uuid.uuid4()),
+            'registros': [
+                {
+                    "contaContabil": "1.0.0.0.01",
+                    "valor": body["valor"],
+                    "documento": body["numeroCartao"],
+                    "natureza": "CREDITO"
+                },
+                {
+                    "contaContabil": "2.0.0.0.01",
+                    "valor": body["valor"],
+                    "documento": body["numeroCartao"],
+                    "natureza": "DEBITO"
+                }
+            ]
+        }
+    )

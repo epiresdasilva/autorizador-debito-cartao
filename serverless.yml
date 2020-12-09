@@ -6,6 +6,9 @@ provider:
   region: us-east-1
   stage: dev
   stackName: ${self:service}-${self:provider.stage}
+  environment:
+    LANCAMENTO_TABLE: lancamento-${opt:stage, self:provider.stage}
+    CONTABILIZACAO_TABLE: contabilizacao-${opt:stage, self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -22,6 +25,14 @@ provider:
     - Effect: Allow
       Action:
         - events:PutEvents
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - s3:GetObject
       Resource: "*"
 
 functions:
@@ -124,6 +135,42 @@ resources:
         GroupId: !Ref AppSecurityGroup
         IpProtocol: -1
         SourceSecurityGroupId: !GetAtt AppSecurityGroup.GroupId
+    LancamentoDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: "id"
+            AttributeType: "S"
+        KeySchema:
+          -
+            AttributeName: "id"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: "NEW_AND_OLD_IMAGES"
+        TableName: ${self:provider.environment.LANCAMENTO_TABLE}
+    ContabilizacaoDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: "id"
+            AttributeType: "S"
+        KeySchema:
+          -
+            AttributeName: "id"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: "NEW_AND_OLD_IMAGES"
+        TableName: ${self:provider.environment.CONTABILIZACAO_TABLE}
 
 plugins:
   - serverless-apigateway-service-proxy

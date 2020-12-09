@@ -3,6 +3,8 @@ import logging
 
 
 def main(event, context):
+    print(str(event))
+
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
