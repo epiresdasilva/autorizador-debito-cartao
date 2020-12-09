@@ -1,20 +1,28 @@
-import json
+import boto3
 import logging
+import os
+import uuid
+from datetime import datetime
 
 
 def main(event, context):
-    print(str(event))
+    body = event["detail"]
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    body = {
-        "mensagem": "Lançamento incluida com sucesso"
-    }
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+    table_name = os.environ['LANCAMENTO_TABLE']
 
-    response = {
-        "statusCode": 200,
-        "body": json.dumps(body)
-    }
+    table = dynamodb.Table(table_name)
 
-    return response
+    return table.put_item(
+        Item={
+            'id': str(uuid.uuid4()),
+            'agencia': body["agencia"],
+            'numeroConta': body["numeroConta"],
+            'numeroCartao': body["numeroCartao"],
+            'valor': body["valor"],
+            'data': datetime.today().strftime('%Y-%m-%d')
+        }
+    )
