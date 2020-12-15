@@ -15,7 +15,7 @@ Um autorizador de débito possui alguns requisitos importantes, que são:
 
 Existem outros requisitos funcionais para um projeto como este, mas para esse projeto vamos nos limitar a estes basicamente.
 
-## Arquitetura (futura)
+## Arquitetura
 
 A arquitetura abaixo é a planejada para exercitar de forma macro o funcionamento da aplicação.
 
@@ -23,19 +23,11 @@ A arquitetura abaixo é a planejada para exercitar de forma macro o funcionament
 
 Vamos exercitar o débito em conta e o processamento dele após a confirmação do débito.
 
-Obs.: Esse é um desenho inicial e pode sofrer alterações :)
+### Melhorias
 
-Pontos que ainda serão avaliados:
 * Utilização de Lambda layer para a biblioteca `psycopg2` deve trazer melhoria de performance
 * Utilização de RDS Proxy deve trazer melhoria de performance (principalmente pela reutilização de conexões)
 * Possibilidade de criação de um cliente ISO8583 para ficar mais fiel ao projeto de autorização de débito
-
-## Status
-
-**EM ANDAMENTO**
-
-No momento o código disponível nesse repositório contém a prova de conceito realizada inicialmente para provar que é possível utilizar um banco de dados relacional na ponta do serviço, para garantir a concorrência e atomicidade do débito.
-Para o projeto, está sendo utilizado um banco de dados Aurora Serverless compatível com PostgreSQL.
 
 ## Como usar?
 
@@ -64,7 +56,9 @@ Quando fizer o deploy dessa aplicação serão criados os seguintes recursos:
 * SecurityGroup
 * Aurora Serverless (PostgreSQL)
 * Lambda Function
-    * Criar conta corrente
-    * Debitador
+    * Criar conta corrente: inclui no banco de dados uma nova conta corrente
+    * Debitador: efetua o débito em conta corrente
+    * Contabilizar: registra a contabilização da operação
+    * Registrar Lançamento: registra o lançamento de débito para sensibilizar o extrato de conta corrente
     
  Ao criar uma conta corrente utilizando o endpoint REST, a função vai automaticamente criar a tabela de conta corrente.
